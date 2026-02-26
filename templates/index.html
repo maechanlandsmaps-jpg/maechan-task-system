@@ -1,0 +1,13 @@
+async function sendTask() {
+    const dept = document.getElementById('dept').value;
+    const task = document.getElementById('task').value;
+    
+    const formData = new FormData();
+    formData.append('dept', dept);
+    formData.append('task', task);
+
+    const response = await fetch('/send-task', { method: 'POST', body: formData });
+    const result = await response.json();
+    alert(result.message);
+    document.getElementById('task').value = ''; // ล้างช่องพิมพ์
+}
