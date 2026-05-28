@@ -1,13 +1,199 @@
-async function sendTask() {
-    const dept = document.getElementById('dept').value;
-    const task = document.getElementById('task').value;
-    
-    const formData = new FormData();
-    formData.append('dept', dept);
-    formData.append('task', task);
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายการสั่งงาน | เทศบาลตำบลแม่จัน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Prompt', sans-serif; }
+        .sidebar-active { background-color: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; color: #10b981; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden">
 
-    const response = await fetch('/send-task', { method: 'POST', body: formData });
-    const result = await response.json();
-    alert(result.message);
-    document.getElementById('task').value = ''; // ล้างช่องพิมพ์
-}
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl z-20 shrink-0">
+        <div class="p-6 flex items-center gap-3">
+            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-600 font-bold text-xl shadow-md">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-bold leading-tight">เทศบาลตำบล<br>แม่จัน</h1>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-chart-pie w-5"></i> ภาพรวม (Dashboard)</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg sidebar-active font-medium"><i class="fa-solid fa-clipboard-list w-5"></i> รายการสั่งงาน</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-timeline w-5"></i> ไทม์ไลน์ผลงาน</a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition"><i class="fa-solid fa-users w-5"></i> จัดการบุคลากร</a>
+        </nav>
+
+        <div class="p-4 m-4 bg-slate-800 rounded-xl flex items-center gap-3">
+            <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white"><i class="fa-solid fa-user"></i></div>
+            <div>
+                <p class="text-sm text-white font-bold">แอดมิน ระบบ</p>
+                <p class="text-xs text-slate-400">ผู้ดูแลระบบ</p>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center z-10 shrink-0">
+            <h2 class="text-2xl font-bold text-blue-600 flex items-center gap-2"><i class="fa-solid fa-clipboard-check"></i> รายการสั่งงาน</h2>
+            <div class="flex gap-2">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-blue-700 transition"><i class="fa-solid fa-list mr-1"></i> ตาราง</button>
+                <button class="bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition"><i class="fa-regular fa-calendar mr-1"></i> ปฏิทิน</button>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-blue-700 transition ml-2"><i class="fa-solid fa-file-export mr-1"></i> ส่งออก</button>
+            </div>
+        </header>
+
+        <div class="p-8 flex-1 overflow-y-auto">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                <h3 class="font-bold text-slate-800 mb-4 text-lg">📝 สร้างคำสั่งงานใหม่</h3>
+                <div class="flex gap-4">
+                    <select id="dept" class="border border-slate-300 rounded-lg px-4 py-2 outline-none focus:border-blue-500 w-1/4">
+                        <option value="กองช่าง">กองช่าง</option>
+                        <option value="สำนักปลัด">สำนักปลัด</option>
+                        <option value="กองสาธารณสุข">กองสาธารณสุข</option>
+                        <option value="กองคลัง">กองคลัง</option>
+                        <option value="กองการศึกษา">กองการศึกษา</option>
+                    </select>
+                    <input type="text" id="task" placeholder="พิมพ์รายละเอียดงานที่ต้องการสั่ง..." class="flex-1 border border-slate-300 rounded-lg px-4 py-2 outline-none focus:border-blue-500">
+                    <button onclick="sendTask()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold shadow-md transition"><i class="fa-solid fa-paper-plane mr-1"></i> สั่งงาน</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">ห้องน้ำตลาดเช้า</h3>
+                        <p class="text-sm text-slate-500 mt-1">น้ำรั่วลงมาชั้นล่าง</p>
+                        <div class="flex gap-2 mt-3">
+                            <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold border border-blue-100">กองช่าง</span>
+                            <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-medium"><i class="fa-solid fa-user-circle mr-1"></i> นายอนุวัฒน์ สำราญ</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button onclick="openUpdateModal(2)" class="bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-500 hover:text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i> อัปเดตงาน
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="updateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl m-4 relative">
+            <button onclick="closeUpdateModal()" class="absolute top-4 right-4 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+            
+            <h2 class="text-xl font-bold text-blue-600 mb-6 flex items-center gap-2"><i class="fa-solid fa-pen-to-square"></i> อัปเดตความคืบหน้า</h2>
+            
+            <input type="hidden" id="edit_row_index">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">ปรับสถานะงาน</label>
+                    <select id="status_select" class="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:border-blue-500 bg-white shadow-sm">
+                        <option value="รอดำเนินการ">🔴 รอดำเนินการ</option>
+                        <option value="กำลังดำเนินการ">🟡 กำลังดำเนินการ</option>
+                        <option value="เสร็จสิ้นแล้ว">🟢 เสร็จสิ้นแล้ว</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">รายละเอียด / ปัญหา</label>
+                    <textarea id="task_detail" rows="4" placeholder="พิมพ์รายละเอียดการทำงาน..." class="w-full border border-slate-300 rounded-lg px-4 py-3 outline-none focus:border-blue-500 shadow-sm"></textarea>
+                </div>
+                
+                <button id="btn_save_update" onclick="updateTaskStatus()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-lg transition mt-4">
+                    บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. ฟังก์ชันสั่งงานใหม่
+        async function sendTask() {
+            const dept = document.getElementById('dept').value;
+            const task = document.getElementById('task').value;
+            
+            if (!task.trim()) { alert("กรุณาพิมพ์รายละเอียดงานครับ!"); return; }
+
+            const formData = new FormData();
+            formData.append('dept', dept);
+            formData.append('task', task);
+
+            try {
+                const response = await fetch('/send-task', { method: 'POST', body: formData });
+                const result = await response.json();
+                alert(result.message);
+                document.getElementById('task').value = ''; 
+            } catch (error) {
+                alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+            }
+        }
+
+        // 2. ควบคุมหน้าต่าง Modal
+        function openUpdateModal(rowIndex) {
+            document.getElementById('edit_row_index').value = rowIndex; // จำไว้ว่ากำลังแก้แถวไหน
+            document.getElementById('status_select').value = "รอดำเนินการ";
+            document.getElementById('task_detail').value = "";
+            document.getElementById('updateModal').classList.remove('hidden');
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.add('hidden');
+        }
+
+        // 3. ฟังก์ชันอัปเดตงานและเตะแจ้งเตือนเข้า LINE (ไฮไลท์สำคัญ)
+        async function updateTaskStatus() {
+            const rowIndex = document.getElementById('edit_row_index').value;
+            const newStatus = document.getElementById('status_select').value; 
+            const detail = document.getElementById('task_detail').value;      
+            const updaterName = "แอดมิน"; // ตรงนี้อาจจะเปลี่ยนเป็นดึงจากระบบ Login 
+
+            const saveBtn = document.getElementById('btn_save_update'); 
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+            saveBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('row_index', rowIndex); 
+            formData.append('new_status', newStatus);
+            formData.append('detail', detail);
+            formData.append('updater_name', updaterName);
+
+            try {
+                const response = await fetch('/update-task', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    // ถ้าเลือกเสร็จสิ้นแล้ว ให้โชว์ Alert ยืนยันการส่ง LINE
+                    if(newStatus === "เสร็จสิ้นแล้ว") {
+                        alert("อัปเดตงานเสร็จสิ้น! ส่งแจ้งเตือนเข้ากลุ่ม LINE เรียบร้อยแล้วครับ");
+                    } else {
+                        alert("บันทึกข้อมูลเรียบร้อย");
+                    }
+                    closeUpdateModal();
+                    // รีเฟรชหน้าเว็บเพื่อให้ข้อมูลอัปเดต (ถ้าเชื่อมต่อ DB จริง)
+                    // location.reload(); 
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+            } finally {
+                saveBtn.innerHTML = 'บันทึกข้อมูล';
+                saveBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
