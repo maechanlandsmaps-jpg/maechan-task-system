@@ -153,12 +153,12 @@
             document.getElementById('updateModal').classList.add('hidden');
         }
 
-        // 3. ฟังก์ชันอัปเดตงานและเตะแจ้งเตือนเข้า LINE (ไฮไลท์สำคัญ)
+        // 3. ฟังก์ชันอัปเดตงานและเตะแจ้งเตือนเข้า LINE ทุกสถานะ
         async function updateTaskStatus() {
             const rowIndex = document.getElementById('edit_row_index').value;
             const newStatus = document.getElementById('status_select').value; 
             const detail = document.getElementById('task_detail').value;      
-            const updaterName = "แอดมิน"; // ตรงนี้อาจจะเปลี่ยนเป็นดึงจากระบบ Login 
+            const updaterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login หรือเพิ่มช่องให้กรอกชื่อ
 
             const saveBtn = document.getElementById('btn_save_update'); 
             saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
@@ -175,14 +175,11 @@
                 const result = await response.json();
                 
                 if(result.status === 'success') {
-                    // ถ้าเลือกเสร็จสิ้นแล้ว ให้โชว์ Alert ยืนยันการส่ง LINE
-                    if(newStatus === "เสร็จสิ้นแล้ว") {
-                        alert("อัปเดตงานเสร็จสิ้น! ส่งแจ้งเตือนเข้ากลุ่ม LINE เรียบร้อยแล้วครับ");
-                    } else {
-                        alert("บันทึกข้อมูลเรียบร้อย");
-                    }
+                    // 🌟 เปลี่ยนข้อความ Alert ให้ครอบคลุมทุกสถานะ
+                    alert(`อัปเดตสถานะเป็น "${newStatus}" สำเร็จ! ส่งแจ้งเตือนความคืบหน้าเข้ากลุ่ม LINE แล้วครับ`);
                     closeUpdateModal();
-                    // รีเฟรชหน้าเว็บเพื่อให้ข้อมูลอัปเดต (ถ้าเชื่อมต่อ DB จริง)
+                    
+                    // รีเฟรชหน้าเว็บเพื่อให้ข้อมูลในตารางอัปเดต
                     // location.reload(); 
                 } else {
                     alert(result.message);
