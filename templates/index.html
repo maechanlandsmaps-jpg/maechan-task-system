@@ -120,77 +120,71 @@
     </div>
 
     <script>
-        // 1. ฟังก์ชันสั่งงานใหม่
-        async function sendTask() {
-            const dept = document.getElementById('dept').value;
-            const task = document.getElementById('task').value;
-            
-            if (!task.trim()) { alert("กรุณาพิมพ์รายละเอียดงานครับ!"); return; }
+    // 1. ฟังก์ชันอัปเดตความคืบหน้า (สถานะ)
+    async function updateTaskStatus() {
+        const rowIndex = document.getElementById('edit_row_index').value;
+        const newStatus = document.getElementById('status_select').value; 
+        const detail = document.getElementById('task_detail').value;      
+        const updaterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login ได้เลย
 
-            const formData = new FormData();
-            formData.append('dept', dept);
-            formData.append('task', task);
-
-            try {
-                const response = await fetch('/send-task', { method: 'POST', body: formData });
-                const result = await response.json();
-                alert(result.message);
-                document.getElementById('task').value = ''; 
-            } catch (error) {
-                alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
-            }
-        }
-
-        // 2. ควบคุมหน้าต่าง Modal
-        function openUpdateModal(rowIndex) {
-            document.getElementById('edit_row_index').value = rowIndex; // จำไว้ว่ากำลังแก้แถวไหน
-            document.getElementById('status_select').value = "รอดำเนินการ";
-            document.getElementById('task_detail').value = "";
-            document.getElementById('updateModal').classList.remove('hidden');
-        }
-
-        function closeUpdateModal() {
-            document.getElementById('updateModal').classList.add('hidden');
-        }
-
-        // 3. ฟังก์ชันอัปเดตงานและเตะแจ้งเตือนเข้า LINE ทุกสถานะ
-        async function updateTaskStatus() {
-            const rowIndex = document.getElementById('edit_row_index').value;
-            const newStatus = document.getElementById('status_select').value; 
-            const detail = document.getElementById('task_detail').value;      
-            const updaterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login หรือเพิ่มช่องให้กรอกชื่อ
-
-            const saveBtn = document.getElementById('btn_save_update'); 
+        const saveBtn = document.getElementById('btn_save_update'); 
+        if(saveBtn) {
             saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
             saveBtn.disabled = true;
-
-            const formData = new FormData();
-            formData.append('row_index', rowIndex); 
-            formData.append('new_status', newStatus);
-            formData.append('detail', detail);
-            formData.append('updater_name', updaterName);
-
-            try {
-                const response = await fetch('/update-task', { method: 'POST', body: formData });
-                const result = await response.json();
-                
-                if(result.status === 'success') {
-                    // 🌟 เปลี่ยนข้อความ Alert ให้ครอบคลุมทุกสถานะ
-                    alert(`อัปเดตสถานะเป็น "${newStatus}" สำเร็จ! ส่งแจ้งเตือนความคืบหน้าเข้ากลุ่ม LINE แล้วครับ`);
-                    closeUpdateModal();
-                    
-                    // รีเฟรชหน้าเว็บเพื่อให้ข้อมูลในตารางอัปเดต
-                    // location.reload(); 
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) {
-                alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
-            } finally {
-                saveBtn.innerHTML = 'บันทึกข้อมูล';
-                saveBtn.disabled = false;
-            }
         }
-    </script>
+
+        const formData = new FormData();
+        formData.append('row_index', rowIndex); 
+        formData.append('new_status', newStatus);
+        formData.append('detail', detail);
+        formData.append('updater_name', updaterName);
+
+        try {
+            const response = await fetch('/update-task', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if(result.status === 'success') {
+                // 💥 ไฮไลท์: บังคับรีเฟรชหน้าเว็บทันทีที่เซฟสำเร็จ 💥
+                window.location.reload(); 
+            } else {
+                alert("Error: " + result.message);
+                if(saveBtn) { saveBtn.innerHTML = 'บันทึกข้อมูล'; saveBtn.disabled = false; }
+            }
+        } catch (error) {
+            alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+            if(saveBtn) { saveBtn.innerHTML = 'บันทึกข้อมูล'; saveBtn.disabled = false; }
+        }
+    }
+
+    // 2. ฟังก์ชันส่งข้อความพูดคุย / คอมเมนต์
+    async function submitComment(rowIndex) {
+        // ต้องตรวจสอบให้แน่ใจว่า ID ของช่องพิมพ์ข้อความตรงกับใน HTML นะครับ
+        // สมมติว่าตั้ง ID ของช่องพิมพ์ว่า 'comment_input_' + rowIndex
+        const commentInput = document.getElementById(`comment_input_${rowIndex}`);
+        if (!commentInput || !commentInput.value.trim()) return;
+
+        const commentText = commentInput.value.trim();
+        const commenterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login
+
+        const formData = new FormData();
+        formData.append('row_index', rowIndex); 
+        formData.append('comment_text', commentText);
+        formData.append('commenter_name', commenterName);
+
+        try {
+            const response = await fetch('/add-comment', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if(result.status === 'success') {
+                // 💥 ไฮไลท์: พิมพ์เสร็จ บังคับรีเฟรชหน้าเว็บทันที 💥
+                window.location.reload(); 
+            } else {
+                alert("Error: " + result.message);
+            }
+        } catch (error) {
+            alert("ไม่สามารถส่งข้อความได้");
+        }
+    }
+</script>
 </body>
 </html>
