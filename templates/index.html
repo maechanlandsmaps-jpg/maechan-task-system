@@ -120,18 +120,30 @@
     </div>
 
     <script>
-    // 1. ฟังก์ชันอัปเดตความคืบหน้า (สถานะ)
+    // 1. ฟังก์ชันสั่งงานใหม่
+    async function sendTask() {
+        const dept = document.getElementById('dept').value;
+        const task = document.getElementById('task').value;
+        if (!task.trim()) { alert("กรุณาพิมพ์รายละเอียดงานครับ!"); return; }
+        const formData = new FormData();
+        formData.append('dept', dept); formData.append('task', task);
+        try {
+            const response = await fetch('/send-task', { method: 'POST', body: formData });
+            const result = await response.json();
+            alert(result.message);
+            document.getElementById('task').value = ''; 
+        } catch (error) { alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้"); }
+    }
+
+    // 2. ฟังก์ชันอัปเดตสถานะ
     async function updateTaskStatus() {
         const rowIndex = document.getElementById('edit_row_index').value;
         const newStatus = document.getElementById('status_select').value; 
         const detail = document.getElementById('task_detail').value;      
-        const updaterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login ได้เลย
+        const updaterName = "นายเพิ่มพูน มะโนวัน"; // ดึงจากระบบ Login
 
         const saveBtn = document.getElementById('btn_save_update'); 
-        if(saveBtn) {
-            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
-            saveBtn.disabled = true;
-        }
+        if(saveBtn) { saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...'; saveBtn.disabled = true; }
 
         const formData = new FormData();
         formData.append('row_index', rowIndex); 
@@ -144,8 +156,8 @@
             const result = await response.json();
             
             if(result.status === 'success') {
-                // 💥 ไฮไลท์: บังคับรีเฟรชหน้าเว็บทันทีที่เซฟสำเร็จ 💥
-                window.location.reload(); 
+                alert("บันทึกสำเร็จ! ระบบกำลังซิงค์ข้อมูลใหม่...");
+                window.location.reload(); // 💥 บังคับรีเฟรช
             } else {
                 alert("Error: " + result.message);
                 if(saveBtn) { saveBtn.innerHTML = 'บันทึกข้อมูล'; saveBtn.disabled = false; }
@@ -156,33 +168,41 @@
         }
     }
 
-    // 2. ฟังก์ชันส่งข้อความพูดคุย / คอมเมนต์
+    // 3. ฟังก์ชันพูดคุย / คอมเมนต์
     async function submitComment(rowIndex) {
-        // ต้องตรวจสอบให้แน่ใจว่า ID ของช่องพิมพ์ข้อความตรงกับใน HTML นะครับ
-        // สมมติว่าตั้ง ID ของช่องพิมพ์ว่า 'comment_input_' + rowIndex
+        // อ้างอิง ID ของปุ่มกด และช่องพิมพ์ให้ตรงกัน
         const commentInput = document.getElementById(`comment_input_${rowIndex}`);
         if (!commentInput || !commentInput.value.trim()) return;
 
         const commentText = commentInput.value.trim();
-        const commenterName = "นายเพิ่มพูน มะโนวัน"; // ⚠️ ดึงจากระบบ Login
+        const commenterName = "นายเพิ่มพูน มะโนวัน"; // ดึงจากระบบ Login
 
         const formData = new FormData();
         formData.append('row_index', rowIndex); 
         formData.append('comment_text', commentText);
         formData.append('commenter_name', commenterName);
 
+        // เปลี่ยนปุ่มจรวดเป็นรูปหมุนๆ
+        const submitBtn = event.currentTarget; 
+        const origIcon = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        submitBtn.disabled = true;
+
         try {
             const response = await fetch('/add-comment', { method: 'POST', body: formData });
             const result = await response.json();
             
             if(result.status === 'success') {
-                // 💥 ไฮไลท์: พิมพ์เสร็จ บังคับรีเฟรชหน้าเว็บทันที 💥
-                window.location.reload(); 
+                window.location.reload(); // 💥 พิมพ์เสร็จ รีเฟรชทันที
             } else {
                 alert("Error: " + result.message);
+                submitBtn.innerHTML = origIcon;
+                submitBtn.disabled = false;
             }
         } catch (error) {
             alert("ไม่สามารถส่งข้อความได้");
+            submitBtn.innerHTML = origIcon;
+            submitBtn.disabled = false;
         }
     }
 </script>
